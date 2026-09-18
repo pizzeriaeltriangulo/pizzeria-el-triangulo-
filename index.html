@@ -41,6 +41,7 @@ footer{text-align:center;padding:25px 15px;color:#999;border-top:1px solid #333;
 <button class="btn order" onclick="openModal('order')">🍕 Hacer pedido</button>
 <button class="btn location" onclick="openModal('location')">📍 Ubicación</button>
 <button class="btn contact" onclick="openModal('contact')">💬 Contactar</button>
+ <button class="btn suggest" onclick="openSuggestions()">💡 Déjanos tu sugerencia</button>
 </div>
 </header>
 
@@ -138,6 +139,9 @@ function selectBranch(i){
  if(action==="location") window.open(b.map,"_blank");
  else window.open("https://wa.me/1"+b.phone+"?text="+encodeURIComponent(action==="order"?"Hola, quiero hacer un pedido en Pizzería El Triángulo.":"Hola, quiero contactar con Pizzería El Triángulo."),"_blank");
  closeModal();
+}
+ function openSuggestions(){
+  window.open("https://wa.me/18095740413?text="+encodeURIComponent("Hola, Pizzería El Triángulo. Quiero dejar una sugerencia: "),"_blank");
 }
 function closeModal(){document.getElementById("modal").style.display="none"}
 window.onclick=e=>{if(e.target===document.getElementById("modal"))closeModal()};
