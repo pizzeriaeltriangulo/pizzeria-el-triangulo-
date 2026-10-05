@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Panel</title>
+<style>body{font-family:Arial,sans-serif;background:#111;color:#fff;max-width:640px;margin:auto;padding:16px}h1{color:#ffd21c;font-size:21px}input,select,button{width:100%;padding:13px;border-radius:10px;border:1px solid #555;font-size:16px;margin-top:8px;background:#222;color:#fff;box-sizing:border-box}button{background:#c90000;border:0;font-weight:bold;cursor:pointer}.row{display:flex;gap:8px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:9px 6px;border-bottom:1px solid #333;text-align:center}th{color:#ffd21c;font-size:13px}td:first-child,th:first-child{text-align:left}tfoot td{font-weight:bold;color:#ffd21c}#msg{margin-top:10px;color:#ff8a8a}.o{background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:12px;margin-top:10px;font-size:14px;line-height:1.5}.o h3{margin:0 0 4px;font-size:15px;color:#ffd21c}.o small{color:#aaa}.t{text-align:right;font-weight:bold;color:#ffd21c;margin-top:6px}</style></head><body>
+<h1>📊 Pedidos enviados por WhatsApp</h1>
+<input id="c" type="password" placeholder="Tu código" autocomplete="off">
+<div class="row"><select id="d"><option value="1">Hoy</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option></select>
+<select id="s"><option value="">Todas las sucursales</option><option>Montellano</option><option>Puerto Plata</option><option>Sosúa Abajo</option><option>La Unión</option></select></div>
+<button onclick="ver()">Ver pedidos</button><div id="msg"></div><div id="sum"></div><div id="out"></div>
+<script>
+const SB_URL="https://khologevsgpffjvafwyz.supabase.co",SB_KEY="sb_publishable_gGjaEgVI7iwyQ03oPrunzg_tsR3HtAO";
+const esc=t=>String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rd=n=>"RD$"+Number(n||0).toLocaleString();
+async function ver(){
+  const m=document.getElementById("msg"),sum=document.getElementById("sum"),out=document.getElementById("out");m.textContent="";sum.innerHTML="";out.innerHTML="";
+  try{
+    const r=await fetch(SB_URL+"/rest/v1/rpc/lista_pedidos",{method:"POST",headers:{apikey:SB_KEY,...(SB_KEY.startsWith("eyJ")?{Authorization:"Bearer "+SB_KEY}:{}),"Content-Type":"application/json"},body:JSON.stringify({codigo:document.getElementById("c").value,dias:Number(document.getElementById("d").value)})});
+    if(!r.ok){m.textContent="Código incorrecto o sin conexión.";return}
+    const f=document.getElementById("s").value;let d=await r.json();if(f)d=d.filter(x=>x.sucursal===f);
+    if(!d.length){m.textContent="No hay pedidos en este período.";return}
+    const g={};d.forEach(x=>{g[x.sucursal]=g[x.sucursal]||[0,0];g[x.sucursal][0]++;g[x.sucursal][1]+=Number(x.total||0)});
+    let tp=0,tv=0;
+    sum.innerHTML="<table><thead><tr><th>Sucursal</th><th>Pedidos</th><th>Ventas</th></tr></thead><tbody>"+Object.keys(g).sort().map(k=>{tp+=g[k][0];tv+=g[k][1];return `<tr><td>${esc(k)}</td><td>${g[k][0]}</td><td>${rd(g[k][1])}</td></tr>`}).join("")+`</tbody><tfoot><tr><td>Total</td><td>${tp}</td><td>${rd(tv)}</td></tr></tfoot></table><p style="color:#aaa;font-size:12px">Ventas = suma de productos, sin delivery.</p>`;
+    out.innerHTML=d.map(x=>{
+      const fe=new Date(x.created_at).toLocaleString("es-DO",{timeZone:"America/Santo_Domingo",day:"2-digit",month:"short",hour:"numeric",minute:"2-digit"});
+      const it=(Array.isArray(x.items)?x.items:[]).map(i=>`${esc(i.c)} × ${esc(i.n)} — ${esc(i.t)}${i.para?` (para ${esc(i.para)}${i.lado?", "+esc(i.lado):""})`:""} · ${rd(i.p*i.c)}`).join("<br>");
+      return `<div class="o"><h3>${esc(x.sucursal)} · ${esc(x.cliente||"Sin nombre")}</h3><small>${esc(fe)} · ${esc(x.entrega||"")} · ${esc(x.pago||"")}${x.banco?" ("+esc(x.banco)+")":""}</small><div style="margin-top:6px">${it||"<small>Sin detalle</small>"}</div><div class="t">${rd(x.total)}</div></div>`}).join("");
+  }catch(e){m.textContent="Sin conexión."}
+}
+</script></body></html>
